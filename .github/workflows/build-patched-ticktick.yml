@@ -21,10 +21,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7  # Bumped to v7 for Node 24 support
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v6
+        uses: actions/setup-dotnet@v6  # Bumped to v6 for Node 24 support & ESM compatibility
         with:
           dotnet-version: '8.0.x'
 
@@ -48,7 +48,7 @@ jobs:
           Compress-Archive -Path "TickTick_Patched.exe" -DestinationPath "TickTick_Patched.zip"
 
       - name: Create Release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@v3  # Bumped to v3 for Node 24 support
         with:
           name: Patched TickTick (${{ github.run_number }})
           files: TickTick_Patched.zip

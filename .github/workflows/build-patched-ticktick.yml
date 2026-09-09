@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       app_url:
-        description: "Direct URL to your installed TickTick.exe file (NOT the installer!)"
+        description: "Direct URL to your installed TickTick.exe file"
         required: true
         type: string
 
@@ -32,21 +32,18 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "Downloading target file from ${{ inputs.app_url }}..."
-          Invoke-WebRequest -Uri "${{ inputs.app_url }}" -OutFile "TickTick.exe"
+          # Use curl with follow-redirects (-L) and silent fail-fast (-f)
+          curl.exe -fL -o "TickTick.exe" "${{ inputs.app_url }}"
 
           $file = Get-Item "TickTick.exe"
           Write-Host "Downloaded file size: $([math]::Round($file.Length / 1MB, 2)) MB ($($file.Length) bytes)"
 
-          # Check if the download was an HTML error/preview page
-          $firstBytes = Get-Content -Path "TickTick.exe" -TotalCount 5 -Raw -ErrorAction SilentlyContinue
-          if ($firstBytes -match "<!DOCTYPE html" -or $firstBytes -match "<html") {
-            Write-Error "ERROR: The URL provided downloaded an HTML page instead of a direct binary. Make sure you are using a direct download link (Google Drive/Dropbox share links will NOT work)."
-            exit 1
-          }
-
           # Check if the file is suspiciously small (real TickTick.exe is usually > 15MB)
           if ($file.Length -lt 5MB) {
-            Write-Error "ERROR: The downloaded file is only $([math]::Round($file.Length / 1MB, 2)) MB. A valid installed TickTick.exe is usually much larger. Make sure you uploaded the installed exe from 'Program Files', NOT a shortcut or installer."
+            Write-Host "--- File Content Preview (You downloaded a webpage!) ---"
+            Get-Content -Path "TickTick.exe" -TotalCount 15 -ErrorAction SilentlyContinue
+            Write-Host "---------------------------------------------------------"
+            Write-Error "ERROR: The file is only $([math]::Round($file.Length / 1MB, 2)) MB. You passed a webpage link instead of the direct file link. Right-click the Download button on Filebin and choose 'Copy Link Address'!"
             exit 1
           }
 

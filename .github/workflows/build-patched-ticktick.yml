@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       app_url:
-        description: "Direct URL to your original TickTick.exe file"
+        description: "Direct URL to your installed TickTick.exe file (NOT the installer!)"
         required: true
         type: string
 
@@ -21,10 +21,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v7  # Bumped to v7 for Node 24 support
+        uses: actions/checkout@v7
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v6  # Bumped to v6 for Node 24 support & ESM compatibility
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '8.0.x'
 
@@ -34,21 +34,38 @@ jobs:
           Write-Host "Downloading target file from ${{ inputs.app_url }}..."
           Invoke-WebRequest -Uri "${{ inputs.app_url }}" -OutFile "TickTick.exe"
 
+          $file = Get-Item "TickTick.exe"
+          Write-Host "Downloaded file size: $([math]::Round($file.Length / 1MB, 2)) MB ($($file.Length) bytes)"
+
+          # Check if the download was an HTML error/preview page
+          $firstBytes = Get-Content -Path "TickTick.exe" -TotalCount 5 -Raw -ErrorAction SilentlyContinue
+          if ($firstBytes -match "<!DOCTYPE html" -or $firstBytes -match "<html") {
+            Write-Error "ERROR: The URL provided downloaded an HTML page instead of a direct binary. Make sure you are using a direct download link (Google Drive/Dropbox share links will NOT work)."
+            exit 1
+          }
+
+          # Check if the file is suspiciously small (real TickTick.exe is usually > 15MB)
+          if ($file.Length -lt 5MB) {
+            Write-Error "ERROR: The downloaded file is only $([math]::Round($file.Length / 1MB, 2)) MB. A valid installed TickTick.exe is usually much larger. Make sure you uploaded the installed exe from 'Program Files', NOT a shortcut or installer."
+            exit 1
+          }
+
       - name: Run Patcher
-        # We can just build and run directly via dotnet run
-        run: dotnet run -- "TickTick.exe"
+        shell: pwsh
+        run: |
+          dotnet run -- "TickTick.exe"
+          if (-not (Test-Path "TickTick_Patched.exe")) {
+            Write-Error "Patcher ran but 'TickTick_Patched.exe' was not created. Check the log output above for dnlib/assembly errors."
+            exit 1
+          }
 
       - name: Prepare Release Package
         shell: pwsh
         run: |
-          if (-not (Test-Path "TickTick_Patched.exe")) {
-            Write-Error "Patching failed: TickTick_Patched.exe not generated."
-            exit 1
-          }
           Compress-Archive -Path "TickTick_Patched.exe" -DestinationPath "TickTick_Patched.zip"
 
       - name: Create Release
-        uses: softprops/action-gh-release@v3  # Bumped to v3 for Node 24 support
+        uses: softprops/action-gh-release@v3
         with:
           name: Patched TickTick (${{ github.run_number }})
           files: TickTick_Patched.zip

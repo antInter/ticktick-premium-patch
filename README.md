@@ -1,4 +1,4 @@
-# Unlimited TickTick - Windows
+# Unlimited TickTick with fixed workflow.yml
 
 
 

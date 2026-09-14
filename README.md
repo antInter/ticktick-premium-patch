@@ -1,7 +1,10 @@
 # Unlimited TickTick with fixed workflow.yml
 
+# Installation
+download the latest patched builds available on the Releases page
 
 
+# Building 
 1. **Fork this repository** using the fork button on the top right.
 2. Go to the **Actions** tab on your newly forked repository. If prompted, click the button to enable workflows.
 3. On the left sidebar under "All workflows", click on **Build Patched TickTick**.
@@ -13,6 +16,7 @@
 7. Click **Run workflow** and wait for the build to finish.
 8. Go to the **Releases** section on the right side of your repository's main page. You will find a new **Draft release** containing your `TickTick_Patched.zip` file ready to download.
 9. Download the ZIP, extract the `TickTick_Patched.exe` file, and replace your original `TickTick.exe` located in your TickTick installation folder (usually `C:\Program Files (x86)\TickTick`).
+
 
 
 

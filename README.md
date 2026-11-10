@@ -1,7 +1,7 @@
 # Unlimited TickTick with fixed workflow.yml
 
 # Installation
-download the latest patched builds available on the Releases page
+download the latest patched builds available on the Releases page > right click on the ticktick desktop icon > open file location > replace the original exe with the patched one in dir
 
 
 # Building 
